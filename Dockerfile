@@ -6,7 +6,7 @@ RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install supervisor mysql-server pwgen
 
 # Remove pre-installed database
-RUN rm -rf /var/lib/mysql
+RUN rm -rf /var/lib/mysql/*
 
 # Add MySQL configuration
 ADD my.cnf /etc/mysql/conf.d/my.cnf
