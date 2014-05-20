@@ -4,6 +4,11 @@ tutum-docker-mysql
 Base docker image to run a MySQL database server
 
 
+MySQL version
+-------------
+
+`master` branch maintains MySQL from Ubuntu trusty official source. If you want to get different version of MySQL, please checkout `5.5` branch and `5.6` branch.
+
 Usage
 -----
 
@@ -79,7 +84,7 @@ Mounting the database file volume from other containers
 Another way to persist the database data is to store database files in another container.
 To do so, first create a container that holds database files:
 
-    docker run -d -v /var/lib/mysql --name db_vol tutum/ubuntu-trusty 
+    docker run -d -v /var/lib/mysql --name db_vol -p 22:22 tutum/ubuntu-trusty 
 
 This will create a new ssh-enabled container and use its folder `/var/lib/mysql` to store MySQL database files. 
 You can specify any name of the container by using `--name` option, which will be used in next step.
