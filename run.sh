@@ -1,6 +1,7 @@
 #!/bin/bash
 
 VOLUME_HOME="/var/lib/mysql"
+HOME=/etc/mysql/conf.d/
 
 if [[ ! -d $VOLUME_HOME/mysql ]]; then
     echo "=> An empty or uninitialized MySQL volume is detected in $VOLUME_HOME"
