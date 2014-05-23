@@ -1,5 +1,9 @@
-FROM ubuntu:trusty
+FROM ubuntu:12.04
 MAINTAINER Fernando Mayo <fernando@tutum.co>, Feng Honglin <hfeng@tutum.co>
+ENV http_proxy http://00026898:Stefan1@165.222.184.232:8080
+ENV https_proxy http://00026898:Stefan1@165.222.184.232:8080
+
+
 
 # Install packages
 RUN apt-get update
