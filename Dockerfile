@@ -3,7 +3,7 @@ MAINTAINER Fernando Mayo <fernando@tutum.co>, Feng Honglin <hfeng@tutum.co>
 
 # Install packages
 RUN apt-get update
-RUN DEBIAN_FRONTEND=noninteractive apt-get -y install mysql-server pwgen
+RUN alias adduser='useradd' && DEBIAN_FRONTEND=noninteractive apt-get -y install mysql-server pwgen
 
 # Remove pre-installed database
 RUN rm -rf /var/lib/mysql/*
