@@ -42,6 +42,10 @@ You will see an output like the following:
 
 In this case, `47nnf4FweaKu` is the password allocated to the `admin` user.
 
+To find the IP address (which you use for `<host>` when connecting to mysql), container must be *running*:
+
+	ruby -e 'require "json"; puts JSON.parse(`docker inspect <CONTAINER_ID>`)[0]["NetworkSettings"]["IPAddress"]'
+
 Remember that the `root` user has no password but it's only accesible from within the container.
 
 You can now test your deployment:
