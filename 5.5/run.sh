@@ -33,6 +33,14 @@ if [[ ! -d $VOLUME_HOME/mysql ]]; then
     echo "=> Done!"  
     echo "=> Creating admin user ..."
     /create_mysql_admin_user.sh
+    if [ -e "/boostrap.sh" ]; then
+        echo "=> Starting MySQL ..."
+        StartMySQL
+        echo "=> Executing bootstrap script..."
+        /bootstrap.sh
+        echo "=> Completed bootstrapping ..."
+        mysqladmin -uroot shutdown
+    fi
 else
     echo "=> Using an existing volume of MySQL"
 fi
