@@ -4,8 +4,7 @@ MAINTAINER Fernando Mayo <fernando@tutum.co>, Feng Honglin <hfeng@tutum.co>
 # Install packages
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && \
-  apt-get -yq install mysql-server-5.6 pwgen && \
-  rm -rf /var/lib/apt/lists/*
+  apt-get -yq install mysql-server-5.6 pwgen && rm -rf /var/lib/apt/lists/*
 
 # Remove pre-installed database
 RUN rm -rf /var/lib/mysql/*
