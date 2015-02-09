@@ -3,6 +3,7 @@
 VOLUME_HOME="/var/lib/mysql"
 CONF_FILE="/etc/mysql/conf.d/my.cnf"
 LOG="/var/log/mysql/error.log"
+REPLICATION_SLAVE_OPTS=${REPLICATION_SLAVE_OPTS:-''};
 
 # Set permission of config file
 chmod 644 ${CONF_FILE}
@@ -134,6 +135,12 @@ if [ -n "${REPLICATION_SLAVE}" ]; then
             echo "=> Starting MySQL ..."
             StartMySQL
             echo "=> Setting master connection info on slave"
+            if [ -n "${REPLICATION_SLAVE_CURRENT}" ] ; then
+                mysql -h${MYSQL_PORT_3306_TCP_ADDR} -u${MYSQL_ENV_REPLICATION_USER} -p$MYSQL_ENV_REPLICATION_PASS} -e 'SHOW MASTER STATUS\G' > /tmp/mysql.master.info;
+                FILE=$(awk -F': ' '/File/ {print $2}' /tmp/mysql.master.info);
+                POSITION=$(awk -F': ' '/Position/ {print $2}' /tmp/mysql.master.info);
+                REPLICATION_SLAVE_OPTS="${REPLICATION_SLAVE_OPTS}, MASTER_LOG_FILE='${FILE}', MASTER_LOG_POS=${POSITION}"
+            fi
             mysql -uroot -e "CHANGE MASTER TO MASTER_HOST='${MYSQL_PORT_3306_TCP_ADDR}',MASTER_USER='${MYSQL_ENV_REPLICATION_USER}',MASTER_PASSWORD='${MYSQL_ENV_REPLICATION_PASS}',MASTER_PORT=${MYSQL_PORT_3306_TCP_PORT}, MASTER_CONNECT_RETRY=30"
             echo "=> Done!"
             mysqladmin -uroot shutdown
