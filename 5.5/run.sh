@@ -136,12 +136,15 @@ if [ -n "${REPLICATION_SLAVE}" ]; then
             StartMySQL
             echo "=> Setting master connection info on slave"
             if [ -n "${REPLICATION_SLAVE_CURRENT}" ] ; then
-                mysql -h${MYSQL_PORT_3306_TCP_ADDR} -u${MYSQL_ENV_REPLICATION_USER} -p$MYSQL_ENV_REPLICATION_PASS} -e 'SHOW MASTER STATUS\G' > /tmp/mysql.master.info;
-                FILE=$(awk -F': ' '/File/ {print $2}' /tmp/mysql.master.info);
-                POSITION=$(awk -F': ' '/Position/ {print $2}' /tmp/mysql.master.info);
-                REPLICATION_SLAVE_OPTS="${REPLICATION_SLAVE_OPTS}, MASTER_LOG_FILE='${FILE}', MASTER_LOG_POS=${POSITION}"
+                mysql -h"${MYSQL_PORT_3306_TCP_ADDR}" -u"${MYSQL_ENV_REPLICATION_USER}" -p"${MYSQL_ENV_REPLICATION_PASS}" -e 'SHOW MASTER STATUS\G' > /tmp/mysql.master.info && {
+                    cat /tmp/mysql.master.info
+                    FILE=$(awk -F': ' '/File/ {print $2}' /tmp/mysql.master.info);
+                    POSITION=$(awk -F': ' '/Position/ {print $2}' /tmp/mysql.master.info);
+                    REPLICATION_SLAVE_OPTS="${REPLICATION_SLAVE_OPTS}, MASTER_LOG_FILE='${FILE}', MASTER_LOG_POS=${POSITION}"
+                    echo "Replication binlog position set to '${FILE}' '${POSITION}'"
+                } || echo "FAILED to connect to master database @${MYSQL_PORT_3306_TCP_ADDR}";
             fi
-            mysql -uroot -e "CHANGE MASTER TO MASTER_HOST='${MYSQL_PORT_3306_TCP_ADDR}',MASTER_USER='${MYSQL_ENV_REPLICATION_USER}',MASTER_PASSWORD='${MYSQL_ENV_REPLICATION_PASS}',MASTER_PORT=${MYSQL_PORT_3306_TCP_PORT}, MASTER_CONNECT_RETRY=30"
+            mysql -uroot -e "CHANGE MASTER TO MASTER_HOST='${MYSQL_PORT_3306_TCP_ADDR}',MASTER_USER='${MYSQL_ENV_REPLICATION_USER}',MASTER_PASSWORD='${MYSQL_ENV_REPLICATION_PASS}',MASTER_PORT=${MYSQL_PORT_3306_TCP_PORT} ${REPLICATION_SLAVE_OPTS}, MASTER_CONNECT_RETRY=30"
             echo "=> Done!"
             mysqladmin -uroot shutdown
             touch /replication_configured
