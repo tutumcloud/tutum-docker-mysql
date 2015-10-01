@@ -3,7 +3,6 @@ MAINTAINER Fernando Mayo <fernando@tutum.co>, Feng Honglin <hfeng@tutum.co>
 
 # Add MySQL configuration
 ADD my.cnf /etc/mysql/conf.d/my.cnf
-ADD mysqld_charset.cnf /etc/mysql/conf.d/mysqld_charset.cnf
 
 RUN apt-get update && \
     apt-get -yq install mysql-server-5.6 pwgen && \
@@ -12,6 +11,9 @@ RUN apt-get update && \
     if [ ! -f /usr/share/mysql/my-default.cnf ] ; then cp /etc/mysql/my.cnf /usr/share/mysql/my-default.cnf; fi && \
     mysql_install_db > /dev/null 2>&1 && \
     touch /var/lib/mysql/.EMPTY_DB
+
+# Add MySQL charset configuration
+ADD mysqld_charset.cnf /etc/mysql/conf.d/mysqld_charset.cnf
 
 # Add MySQL scripts
 ADD import_sql.sh /import_sql.sh

@@ -158,12 +158,30 @@ Examples:
 
 Now you can access port `3306` and `3307` for the master/slave MySQL.
 
+
+Character set and collation
+---------------------------
+To change MySQL character set and collation, please set environment variable `MYSQL_CHARACTER_SET` and `MYSQL_COLLATION` to any supported value by MySQL server. By default, `utf8mb4` and `utf8mb4_unicode_ci` are used in order to support 4-bytes unicode character (including emoji, astral symbol, etc.).
+
+To ensure to use `utf8mb4` and `utf8mb4_general_ci`:
+
+        docker run -d -e MYSQL_CHARACTER_SET=utf8mb4 -e MYSQL_COLLATION=utf8mb4_general_ci -p 3306:3306 --name mysql tutum/mysql
+
+To use `utf8` and `utf8_general_ci`:
+
+        docker run -d -e MYSQL_CHARACTER_SET=utf8 -e MYSQL_COLLATION=utf8_general_ci -p 3306:3306 --name mysql tutum/mysql
+
+
 Environment variables
 ---------------------
 
-`MYSQL_USER`: Set a specific username for the admin account (default 'admin').
+`MYSQL_USER`: Set a specific username for the admin account (default `admin`).
 
 `MYSQL_PASS`: Set a specific password for the admin account.
+
+`MYSQL_CHARACTER_SET`: Set a specific character encoding set (default `utf8mb4`)
+
+`MYSQL_COLLATION`: Set a specific collation (default `utf8mb4_unicode_ci`)
 
 `STARTUP_SQL`: Defines one or more SQL scripts separated by spaces to initialize the database. Note that the scripts must be inside the container, so you may need to mount them.
 
