@@ -6,10 +6,15 @@ set -e
 VOLUME_HOME="/var/lib/mysql"
 CONF_FILE="/etc/mysql/conf.d/my.cnf"
 LOG="/var/log/mysql/error.log"
+CHARSET_CONF_FILE="/etc/mysql/conf.d/mysqld_charset.cnf"
 
 # Set permission of config file
 chmod 644 ${CONF_FILE}
-chmod 644 /etc/mysql/conf.d/mysqld_charset.cnf
+
+# Update charset file and set permission
+sed -i "s/MYSQL_CHARACTER_SET/${MYSQL_CHARACTER_SET}/" ${CHARSET_CONF_FILE}
+sed -i "s/MYSQL_COLLATION/${MYSQL_COLLATION}/" ${CHARSET_CONF_FILE}
+chmod 644 ${CHARSET_CONF_FILE}
 
 StartMySQL ()
 {

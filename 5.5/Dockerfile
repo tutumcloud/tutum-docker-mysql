@@ -19,6 +19,8 @@ ADD run.sh /run.sh
 
 ENV MYSQL_USER=admin \
     MYSQL_PASS=**Random** \
+    MYSQL_CHARACTER_SET=utf8mb4 \
+    MYSQL_COLLATION=utf8mb4_unicode_ci \
     ON_CREATE_DB=**False** \
     REPLICATION_MASTER=**False** \
     REPLICATION_SLAVE=**False** \
