@@ -31,6 +31,9 @@ StartMySQL ()
         sleep 1
         mysql -uroot -e "status" > /dev/null 2>&1 && break
     done
+
+    # Remove non-exist plugin
+    mysql -uroot -e "DELETE FROM mysql.plugin WHERE name IN ('innodb', 'federated', 'blackhole', 'archive');"
 }
 
 CreateMySQLUser()
