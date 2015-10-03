@@ -30,7 +30,7 @@ docker build -t mysql-5.6 5.6/
 
 echo "=> Testing if mysql is running on 5.6"
 docker run -d -p 23306:3306 -e MYSQL_USER="user" -e MYSQL_PASS="test" mysql-5.6; sleep 10
-mysqladmin -uuser -ptest -h127.0.0.1 -P13307 ping | grep -c "mysqld is alive"
+mysqladmin -uuser -ptest -h127.0.0.1 -P23306 ping | grep -c "mysqld is alive"
 
 echo "=> Testing replication on mysql 5.6"
 docker run -d -e MYSQL_USER=user -e MYSQL_PASS=test -e REPLICATION_MASTER=true -e REPLICATION_USER=repl -e REPLICATION_PASS=repl -p 23307:3306 --name mysql56master mysql-5.6; sleep 10
