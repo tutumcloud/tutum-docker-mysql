@@ -1,6 +1,5 @@
 [mysqld]
 character_set_server=MYSQL_CHARACTER_SET
-character_set_filesystem=MYSQL_CHARACTER_SET
 collation-server=MYSQL_COLLATION
 init-connect='SET NAMES MYSQL_CHARACTER_SET'
 init_connect='SET collation_connection = MYSQL_COLLATION'
