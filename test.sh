@@ -9,8 +9,8 @@ mysql_docker_test_release()
     local major="5"
     local minor="7"
 
-    [[ -z "$major" ]] || major="$1"
-    [[ -z "$minor" ]] || minor="$2"
+    [[ -z "$1" ]] || major="$1"
+    [[ -z "$2" ]] || minor="$2"
 
     local release="${major}"."${minor}"
 
@@ -23,16 +23,14 @@ mysql_docker_test_release()
     local user="user"
     local passwd="test"
     local host="127.0.0.1"
-
     local repl_user="repl"
     local repl_passwd="repl"
-    local rep_host="127.0.0.1"
 
     echo -e "\e[1m=> Building mysql ${release} image\e[0m"
 
     docker build -t "mysql-${release}" "${release}/"
 
-    echo -e "\e[1m=> Testing if mysql is running on ${release}"
+    echo -e "\e[1m=> Testing if mysql ${release} is running on ${host}"
 
     docker run -d -p "${lport}":3306 -e MYSQL_USER="${user}" -e MYSQL_PASS="${passwd}" \
         mysql-"${release}"
@@ -52,6 +50,7 @@ mysql_docker_test_release()
     sleep 10
 
     docker logs mysql"${release//.}"master | grep "repl:repl"
+
     mysql -u"${user}" -p"${passwd}" -h"${host}" -P"${lport_master}" -e "show master status\G;" \
         | grep "mysql-bin.*"
     mysql -u"${user}" -p"${passwd}" -h"${host}" -P"${lport_slave}"  -e "show slave status\G;"  \
