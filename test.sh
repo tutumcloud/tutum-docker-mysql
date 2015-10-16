@@ -10,7 +10,7 @@ mysql_docker_test_release()
     local minor="7"
 
     [[ -z "$major" ]] || major="$1"
-    [[ -z "$minor" ]] || major="$2"
+    [[ -z "$minor" ]] || minor="$2"
 
     local release="${major}.${minor}"
 
