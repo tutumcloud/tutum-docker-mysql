@@ -49,7 +49,9 @@ mysql_docker_test_release()
         -p "${lport_slave}":3306 --link mysql"${release//.}"master:mysql mysql-"${release}"
     sleep 10
 
-    docker logs mysql"${release//.}"master | grep "repl:repl"
+    docker info | grep -q "Logging Driver: syslog" \
+      && ( docker logs mysql"${release//.}"master | grep "${repl_user}":"${repl_passwd}" ) \
+      || grep "${repl_user}":"${repl_passwd}" /var/log/syslog
 
     mysql -u"${user}" -p"${passwd}" -h"${host}" -P"${lport_master}" -e "show master status\G;" \
         | grep "mysql-bin.*"
