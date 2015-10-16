@@ -51,7 +51,11 @@ mysql_docker_test_release()
 
     docker info | grep -q "Logging Driver: syslog" \
       && ( docker logs mysql"${release//.}"master | grep "${repl_user}":"${repl_passwd}" ) \
-      || grep "${repl_user}":"${repl_passwd}" /var/log/syslog
+      || {
+            [[ -r /var/log/syslog ]] \
+              && grep "${repl_user}":"${repl_passwd}" /var/log/syslog \
+              || echo -e "\e]31m ERROR:\e]0mCannot verify replication user creation"
+         }
 
     mysql -u"${user}" -p"${passwd}" -h"${host}" -P"${lport_master}" -e "show master status\G;" \
         | grep "mysql-bin.*"
