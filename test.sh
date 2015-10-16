@@ -1,51 +1,90 @@
 #!/bin/bash
+# jue oct 15 13:18:38 CEST 2015
+# borja@libcrack.so
 
 set -e
 
-echo "=> Building mysql 5.5 image"
-docker build -t mysql-5.5 5.5/
+mysql_docker_test_release()
+{
+    local major="5"
+    local minor="7"
 
-echo "=> Testing if mysql is running on 5.5"
-docker run -d -p 13306:3306 -e MYSQL_USER="user" -e MYSQL_PASS="test" mysql-5.5; sleep 10
-mysqladmin -uuser -ptest -h127.0.0.1 -P13306 ping | grep -c "mysqld is alive"
+    [[ -z "$1" ]] || major="$1"
+    [[ -z "$2" ]] || minor="$2"
 
-echo "=> Testing replication on mysql 5.5"
-docker run -d -e MYSQL_USER=user -e MYSQL_PASS=test -e REPLICATION_MASTER=true -e REPLICATION_USER=repl -e REPLICATION_PASS=repl -p 13307:3306 --name mysql55master mysql-5.5; sleep 10
-docker run -d -e MYSQL_USER=user -e MYSQL_PASS=test -e REPLICATION_SLAVE=true -p 13308:3306 --link mysql55master:mysql mysql-5.5; sleep 10
-docker logs mysql55master | grep "repl:repl"
-mysql -uuser -ptest -h127.0.0.1 -P13307 -e "show master status\G;" | grep "mysql-bin.*"
-mysql -uuser -ptest -h127.0.0.1 -P13308 -e "show slave status\G;" | grep "Slave_IO_Running.*Yes"
-mysql -uuser -ptest -h127.0.0.1 -P13308 -e "show slave status\G;" | grep "Slave_SQL_Running.*Yes"
+    local release="${major}"."${minor}"
 
-echo "=> Testing volume on mysql 5.5"
-mkdir vol55
-docker run --name mysql55.1 -d -p 13309:3306 -e MYSQL_USER="user" -e MYSQL_PASS="test" -v $(pwd)/vol55:/var/lib/mysql mysql-5.5; sleep 10
-mysqladmin -uuser -ptest -h127.0.0.1 -P13309 ping | grep -c "mysqld is alive"
-docker stop mysql55.1
-docker run  -d -p 13310:3306 -v $(pwd)/vol55:/var/lib/mysql mysql-5.5; sleep 10
-mysqladmin -uuser -ptest -h127.0.0.1 -P13310 ping | grep -c "mysqld is alive"
+    local lport="$(($RANDOM+1024))"
+    local lport_master="$(($lport+1))"
+    local lport_slave="$(($lport+2))"
+    local lport_vol="$(($lport+3))"
+    local lport_vol2="$(($lport+4))"
 
-echo "=> Building mysql 5.6 image"
-docker build -t mysql-5.6 5.6/
+    local user="user"
+    local passwd="test"
+    local host="127.0.0.1"
+    local repl_user="repl"
+    local repl_passwd="repl"
 
-echo "=> Testing if mysql is running on 5.6"
-docker run -d -p 23306:3306 -e MYSQL_USER="user" -e MYSQL_PASS="test" mysql-5.6; sleep 10
-mysqladmin -uuser -ptest -h127.0.0.1 -P13307 ping | grep -c "mysqld is alive"
+    echo -e "\e[1m=> Building mysql ${release} image\e[0m"
 
-echo "=> Testing replication on mysql 5.6"
-docker run -d -e MYSQL_USER=user -e MYSQL_PASS=test -e REPLICATION_MASTER=true -e REPLICATION_USER=repl -e REPLICATION_PASS=repl -p 23307:3306 --name mysql56master mysql-5.6; sleep 10
-docker run -d -e MYSQL_USER=user -e MYSQL_PASS=test -e REPLICATION_SLAVE=true -p 23308:3306 --link mysql56master:mysql mysql-5.6; sleep 10
-docker logs mysql56master | grep "repl:repl"
-mysql -uuser -ptest -h127.0.0.1 -P23307 -e "show master status\G;" | grep "mysql-bin.*"
-mysql -uuser -ptest -h127.0.0.1 -P23308 -e "show slave status\G;" | grep "Slave_IO_Running.*Yes"
-mysql -uuser -ptest -h127.0.0.1 -P23308 -e "show slave status\G;" | grep "Slave_SQL_Running.*Yes"
+    docker build -t "mysql-${release}" "${release}/"
 
-echo "=> Testing volume on mysql 5.6"
-mkdir vol56
-docker run --name mysql56.1 -d -p 23309:3306 -e MYSQL_USER="user" -e MYSQL_PASS="test" -v $(pwd)/vol56:/var/lib/mysql mysql-5.6; sleep 10
-mysqladmin -uuser -ptest -h127.0.0.1 -P23309 ping | grep -c "mysqld is alive"
-docker stop mysql56.1
-docker run  -d -p 23310:3306 -v $(pwd)/vol56:/var/lib/mysql mysql-5.6; sleep 10
-mysqladmin -uuser -ptest -h127.0.0.1 -P23310 ping | grep -c "mysqld is alive"
+    echo -e "\e[1m=> Testing if mysql ${release} is running on ${host}"
 
-echo "=>Done"
+    docker run -d -p "${lport}":3306 -e MYSQL_USER="${user}" -e MYSQL_PASS="${passwd}" \
+        mysql-"${release}"
+    sleep 10
+
+    mysqladmin -u"${user}" -p"${passwd}" -h"${host}" -P"${lport}" ping | grep -c "mysqld is alive"
+
+    echo -e "\e[1m=> Testing replication on mysql ${release}\e[0m"
+
+    docker run -d -e MYSQL_USER="${user}" -e MYSQL_PASS="${passwd}" -e REPLICATION_MASTER=true \
+        -e REPLICATION_USER="${repl_user}" -e REPLICATION_PASS="${repl_passwd}" -p "${lport_master}":3306 \
+        --name mysql"${release//.}"master mysql-"${release}"
+    sleep 10
+
+    docker run -d -e MYSQL_USER="${user}" -e MYSQL_PASS="${passwd}" -e REPLICATION_SLAVE=true \
+        -p "${lport_slave}":3306 --link mysql"${release//.}"master:mysql mysql-"${release}"
+    sleep 10
+
+    docker info | grep -q "Logging Driver: syslog" \
+      && ( docker logs mysql"${release//.}"master | grep "${repl_user}":"${repl_passwd}" ) \
+      || {
+            [[ -r /var/log/syslog ]] \
+              && grep "${repl_user}":"${repl_passwd}" /var/log/syslog \
+              || echo -e "\e]31m ERROR:\e]0mCannot verify replication user creation"
+         }
+
+    mysql -u"${user}" -p"${passwd}" -h"${host}" -P"${lport_master}" -e "show master status\G;" \
+        | grep "mysql-bin.*"
+    mysql -u"${user}" -p"${passwd}" -h"${host}" -P"${lport_slave}"  -e "show slave status\G;"  \
+        | grep "Slave_IO_Running.*Yes"
+    mysql -u"${user}" -p"${passwd}" -h"${host}" -P"${lport_slave}"  -e "show slave status\G;"  \
+        | grep "Slave_SQL_Running.*Yes"
+
+    echo -e "\e[1m=> Testing volume on mysql ${release}\e[0m"
+
+    mkdir vol"${release//.}"
+    docker run --name mysql"${release//.}".1 -d -p "${lport_vol}:3306" -e MYSQL_USER="${user}" \
+        -e MYSQL_PASS="${passwd}" -v "$(pwd)/vol${release//.}":/var/lib/mysql mysql-"${release}"
+    sleep 10
+
+    mysqladmin -u"${user}" -p"${passwd}" -h"${host}" -P"${lport_vol}" ping | grep -c "mysqld is alive"
+    docker stop mysql"${release//.}".1
+    docker run  -d -p "${lport_vol2}":3306 -v "$(pwd)/vol${release//.}":/var/lib/mysql mysql-"${release}"
+    sleep 10
+
+    mysqladmin -u"${user}" -p"${passwd}" -h"${host}" -P"${lport_vol2}" ping | grep -c "mysqld is alive"
+}
+
+echo -e "\e[1m Starting tests at $(date "+%d/%m/%Y %H:%M:%S") \e[0m"
+
+mysql_docker_test_release 5 5
+mysql_docker_test_release 5 6
+mysql_docker_test_release 5 7
+
+echo -e "\e[1m Finished tests at $(date "+%d/%m/%Y %H:%M:%S") \e[0m"
+
+# vim:set ts=2 sw=2 et:
