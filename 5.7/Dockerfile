@@ -19,7 +19,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     if [ ! -f /usr/share/mysql/my-default.cnf ] ; then cp /etc/mysql/my.cnf /usr/share/mysql/my-default.cnf; fi && \
     rm -rf /var/lib/mysql/* && \
-    mysqld --initialize > /dev/null 2>&1 && \
+    mysqld --initialize-insecure=on --user=mysql --datadir=/var/lib/mysql > /dev/null 2>&1 && \
     touch /var/lib/mysql/.EMPTY_DB
 
 # Add MySQL scripts
